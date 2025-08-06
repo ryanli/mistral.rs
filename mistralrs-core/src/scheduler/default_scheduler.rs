@@ -10,6 +10,8 @@ use crate::{
     sequence::{Sequence, SequenceState, StopReason},
 };
 
+use tracing::info;
+
 use super::{Scheduler, SchedulerOutput};
 
 pub trait FcfsBacker: Default {
@@ -320,6 +322,7 @@ impl Scheduler for DefaultScheduler<VecDeque<Sequence>> {
         self.running.len()
     }
     fn add_seq(&mut self, seq: Sequence) {
+        info!(prompt=?seq.get_toks(), "Adding seq");
         if seq.is_running() {
             // prefill case
             self.running.push(seq);

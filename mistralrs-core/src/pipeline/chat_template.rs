@@ -328,7 +328,7 @@ pub fn apply_chat_template_to(
     let date = chrono::Utc::now();
     let date_string = date.format("%d, %B, %Y").to_string();
 
-    if tools.is_empty() {
+    let result = if tools.is_empty() {
         Ok(tmpl.render(context! {
             messages => new_messages,
             add_generation_prompt => add_generation_prompt,
@@ -350,5 +350,7 @@ pub fn apply_chat_template_to(
             date_string => date_string,
             enable_thinking => enable_thinking.unwrap_or(true),
         })?)
-    }
+    };
+    info!(?result, "rendered chat template");
+    result
 }

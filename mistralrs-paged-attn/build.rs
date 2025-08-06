@@ -98,7 +98,8 @@ pub use backend::{copy_blocks, paged_attention, reshape_and_cache, swap_blocks};
     builder.build_lib(out_file);
 
     let kernel_dir = PathBuf::from("../mistralrs-paged-attn");
-    let absolute_kernel_dir = std::fs::canonicalize(kernel_dir).unwrap_or("../mistralrs-paged-attn".into());
+    let absolute_kernel_dir =
+        std::fs::canonicalize(kernel_dir).unwrap_or("../mistralrs-paged-attn".into());
 
     println!(
         "cargo:rustc-link-search=native={}",

@@ -3,6 +3,7 @@ use std::sync::Arc;
 use anyhow::{Context, Result};
 use either::Either;
 use indexmap::IndexMap;
+use tracing::info;
 
 use crate::{
     vision_models::{preprocessor_config::PreProcessorConfig, processor_config::ProcessorConfig},
@@ -63,8 +64,9 @@ pub trait Processor {
             .with_context(|| {
                 "Default `Processor::process` requires the model to have a tokenizer."
             })?
-            .encode_fast(prompt.clone(), add_special_tokens)
+            .encode(prompt.clone(), false)
             .map_err(anyhow::Error::msg)?;
+        info!(?prompt, ?encoding, "Encoding complete");
         Ok((encoding.get_ids().to_vec(), prompt))
     }
     fn inputs_processor(&self) -> Arc<dyn InputsProcessor>;
