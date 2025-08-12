@@ -37,7 +37,8 @@ impl QuantMethod for UnquantLinear {
             | QuantMethodConfig::FP8 { .. }
             | QuantMethodConfig::Bnb { .. }
             | QuantMethodConfig::BlockwiseFP8 { .. }
-            | QuantMethodConfig::Afq { .. } => unreachable!(),
+            | QuantMethodConfig::Afq { .. }
+            | QuantMethodConfig::MXFP4 { .. } => unreachable!(),
             QuantMethodConfig::Unquantized(l) => Ok(Self {
                 w: l.weight().clone(),
                 b: l.bias().cloned(),
@@ -318,10 +319,10 @@ impl QuantizedSerde for UnquantLinear {
     fn name(&self) -> &'static str {
         "unquant-linear"
     }
-    fn serialize(&self) -> Result<Cow<[u8]>> {
+    fn serialize(&self) -> Result<Cow<'_, [u8]>> {
         self.serialize_with_bias(self.b.clone())
     }
-    fn serialize_with_bias(&self, bias: Option<Tensor>) -> Result<Cow<[u8]>> {
+    fn serialize_with_bias(&self, bias: Option<Tensor>) -> Result<Cow<'_, [u8]>> {
         let mut buffer = Vec::new();
 
         // Version is always first!

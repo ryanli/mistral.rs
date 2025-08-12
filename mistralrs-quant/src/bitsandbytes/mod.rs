@@ -212,7 +212,8 @@ impl QuantMethod for BnbLinear {
             | QuantMethodConfig::Unquantized(_)
             | QuantMethodConfig::FP8 { .. }
             | QuantMethodConfig::BlockwiseFP8 { .. }
-            | QuantMethodConfig::Afq { .. } => unreachable!(),
+            | QuantMethodConfig::Afq { .. }
+            | QuantMethodConfig::MXFP4 { .. } => unreachable!(),
             QuantMethodConfig::Bnb {
                 weight,
                 bias,
@@ -274,7 +275,7 @@ impl QuantizedSerde for BnbLinear {
     fn name(&self) -> &'static str {
         "bnb-linear"
     }
-    fn serialize(&self) -> Result<Cow<[u8]>> {
+    fn serialize(&self) -> Result<Cow<'_, [u8]>> {
         candle_core::bail!("BitsAndBytes quantization does not support UQFF serialization")
     }
 

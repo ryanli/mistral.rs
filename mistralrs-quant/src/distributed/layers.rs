@@ -10,9 +10,9 @@ use crate::{
     lora::merge_lora_weights,
     should_apply_immediate_isq,
     utils::isq::{apply_immediate_isq, apply_immediate_isq_always},
-    AfqLayer, BnbLinear, DistributedKind, DummyLayer, FP8Linear, GgufMatMul, HqqLayer, QuantMethod,
-    QuantMethodConfig, QuantizeOntoGuard, QuantizedConfig, QuantizedSerde, QuantizedSerdeType,
-    Shard, ShardedVarBuilder, UnquantLinear,
+    AfqLayer, BnbLinear, DistributedKind, DummyLayer, FP8Linear, GgufMatMul, HqqLayer, MXFP4Layer,
+    QuantMethod, QuantMethodConfig, QuantizeOntoGuard, QuantizedConfig, QuantizedSerde,
+    QuantizedSerdeType, Shard, ShardedVarBuilder, UnquantLinear,
 };
 
 use super::{Comm, SumAllReduce};
@@ -83,6 +83,9 @@ impl RowParallelLayer {
                 }
                 QuantizedConfig::Afq { .. } => {
                     AfqLayer::afq_linear_b(in_dim, out_dim, quant_conf, bias, vb.clone())?
+                }
+                QuantizedConfig::MXFP4 {} => {
+                    MXFP4Layer::linear_b(in_dim, out_dim, quant_conf, bias, vb.clone())?
                 }
             }
         } else {
@@ -272,7 +275,7 @@ impl QuantizedSerde for RowParallelLayer {
     fn name(&self) -> &'static str {
         self.weight.name()
     }
-    fn serialize(&self) -> Result<std::borrow::Cow<[u8]>> {
+    fn serialize(&self) -> Result<std::borrow::Cow<'_, [u8]>> {
         self.weight.serialize_with_bias(self.bias.clone())
     }
     fn deserialize(
@@ -357,6 +360,9 @@ impl ColumnParallelLayer {
                 }
                 QuantizedConfig::Afq { .. } => {
                     AfqLayer::afq_linear_b(in_dim, out_dim, quant_conf, bias, vb.clone())?
+                }
+                QuantizedConfig::MXFP4 {} => {
+                    MXFP4Layer::linear_b(in_dim, out_dim, quant_conf, bias, vb.clone())?
                 }
             }
         } else {
@@ -577,7 +583,7 @@ impl QuantizedSerde for ColumnParallelLayer {
     fn name(&self) -> &'static str {
         self.weight.name()
     }
-    fn serialize(&self) -> Result<std::borrow::Cow<[u8]>> {
+    fn serialize(&self) -> Result<std::borrow::Cow<'_, [u8]>> {
         self.weight.serialize_with_bias(self.bias.clone())
     }
     fn deserialize(
@@ -650,6 +656,9 @@ impl ReplicatedLayer {
                 QuantizedConfig::Afq { .. } => {
                     AfqLayer::afq_linear_b(in_dim, out_dim, quant_conf, bias, vb.clone())?
                 }
+                QuantizedConfig::MXFP4 {} => {
+                    MXFP4Layer::linear_b(in_dim, out_dim, quant_conf, bias, vb.clone())?
+                }
             }
         } else {
             // Handle the case where the layer is dummy (no tensors)
@@ -716,6 +725,9 @@ impl ReplicatedLayer {
                 }
                 QuantizedConfig::Afq { .. } => {
                     AfqLayer::afq_linear_b(in_dim, out_dim, quant_conf, bias, vb.clone())?
+                }
+                QuantizedConfig::MXFP4 {} => {
+                    MXFP4Layer::linear_b(in_dim, out_dim, quant_conf, bias, vb.clone())?
                 }
             }
         } else {
@@ -827,7 +839,7 @@ impl QuantizedSerde for ReplicatedLayer {
     fn name(&self) -> &'static str {
         self.0.name()
     }
-    fn serialize(&self) -> Result<std::borrow::Cow<[u8]>> {
+    fn serialize(&self) -> Result<std::borrow::Cow<'_, [u8]>> {
         self.0.serialize()
     }
     fn deserialize(

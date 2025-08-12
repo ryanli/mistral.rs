@@ -43,7 +43,8 @@ impl QuantMethod for FP8Linear {
             | QuantMethodConfig::Unquantized(_)
             | QuantMethodConfig::Bnb { .. }
             | QuantMethodConfig::BlockwiseFP8 { .. }
-            | QuantMethodConfig::Afq { .. } => unreachable!(),
+            | QuantMethodConfig::Afq { .. }
+            | QuantMethodConfig::MXFP4 { .. } => unreachable!(),
             QuantMethodConfig::FP8 { lin, dtype } => {
                 let QuantizationResult {
                     qw,
@@ -187,10 +188,10 @@ impl QuantizedSerde for FP8Linear {
     fn name(&self) -> &'static str {
         "fp8-linear"
     }
-    fn serialize(&self) -> Result<Cow<[u8]>> {
+    fn serialize(&self) -> Result<Cow<'_, [u8]>> {
         self.serialize_with_bias(self.lin.bias().cloned())
     }
-    fn serialize_with_bias(&self, bias: Option<Tensor>) -> Result<Cow<[u8]>> {
+    fn serialize_with_bias(&self, bias: Option<Tensor>) -> Result<Cow<'_, [u8]>> {
         let mut buffer = Vec::new();
 
         // Version is always first!
